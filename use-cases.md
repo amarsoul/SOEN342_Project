@@ -4,6 +4,7 @@
 ## Actors
 
 | Actor | Type | Goal |
+| --- | --- | --- |
 | Administrative Staff | Primary | Registers patients, books and manages appointments, registers arrivals handles invoices and payments. |
 | Patient | Primary | Requests, reschedules or cancels own appointments. |
 | Healthcare Professional | Primary | Conducts consultations, records clinical information, issues prescriptions and referrals. |
@@ -15,6 +16,7 @@ RAMQ claims submission, electronic prescribing to pharmacies and provincial syst
 ## Critical and non-critical use cases
 
 | Use case | Critical? | Primary actor(s) |
+| --- | --- | --- |
 | UC1 Book Appointment | Critical | Administrative Staff, Patient |
 | UC2 Record Consultation | Critical | Healthcare Professional |
 | UC3 Issue Referral | Critical | Healthcare Professional |
