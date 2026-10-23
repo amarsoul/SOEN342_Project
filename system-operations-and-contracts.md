@@ -125,3 +125,51 @@
 - The assocaited Apointment status became Completed.
 
 
+## UC3 Issue Referral Contracts
+
+**Name:** startReferral(patientId)  
+**Responsability:** Initialize a new referral session for a patient.  
+**Cross References:** UC3  
+**Pre-conditons:** The patient exist. The Professional is authorized .  
+**Post-conditons:**  
+- A new Referral instance 'ref' was sucessfully created.  
+- 'ref' was assocaited with the Patient.
+
+---
+
+**Name:** setRequestedSpecialty(specialtyId)  
+**Responsability:** Set the desired specialty for the referral.  
+**Cross References:** UC3  
+**Pre-conditons:** Referral 'ref' exists.  
+**Post-conditons:**  
+- 'ref' was assocaited with the Specialty.
+
+---
+
+**Name:** enterReferralDetails(clinicalReason, priority)  
+**Responsability:** Record clinical notes and priority level for the referral.  
+**Cross References:** UC3  
+**Pre-conditons:** Referral 'ref'' exists.  
+**Post-conditons:**  
+- 'ref.clinicalReason' and 'ref..priority' attributes were updated.
+
+---
+
+**Name:** submitReferral()  
+**Responsability:** Finalize and submit the referal to issue a reference number.  
+**Cross References:** UC3  
+**Pre-conditons:** Referral 'ref' detail are complete and valid.  
+**Post-conditons:**  
+- 'ref' status became Submitted.  
+- A unique referral number was generated.
+
+---
+
+**Name:** cancelReferral()  
+**Responsability:** Cancel the current referral proces.  
+**Cross References:** UC3  
+**Pre-conditons:** Referral 'ref' exist.  
+**Post-conditons:**  
+- Referral 'ref' was deleted.
+
+
