@@ -1,3 +1,21 @@
+## Table of Contents
+- [Actors](#actors)
+- [Critical and non-critical use cases](#critical-and-non-critical-use-cases)
+- [Brief use cases (non-critical)](#brief-use-cases-non-critical)
+  - [Appointments](#appointments)
+  - [Patients](#patients)
+  - [Clinical](#clinical)
+  - [Referrals](#referrals)
+  - [Billing (uninsured services)](#billing-uninsured-services)
+  - [Administration and access](#administration-and-access)
+- [UC1: Book Appointment](#uc1-book-appointment)
+- [UC2: Record Consultation](#uc2-record-consultation)
+- [UC3: Issue Referral](#uc3-issue-referral)
+
+---
+
+
+
 # Use Case Model
 ...
 
@@ -203,13 +221,15 @@ The three critical use cases carry the core value of the system (getting a patie
 
 **Main Success Scenario:**
 
-1. Healthcare Professional selects the patient's appointment from the day's list and starts the consultation.
-2. System first verifies that the professional is authorized for this appointment and that the patient's arrival has been registered (status Arrived). Only after both checks succeed does the system open the patient's clinical record and present the patient's summary and history.
-3. Healthcare Professional records relevant observations, if any.
-4. If a diagnosis is made, Healthcare Professional records the diagnosis. This step repeats for each additional diagnosis.
-5. Healthcare Professional records any applicable treatment recommendations and follow-up requirements.
-6. Healthcare Professional indicates that the consultation is complete.
-7. System saves the consultation in the clinical record, marks the appointment Completed, records the activity, and presents a consultation summary.
+| Step | Actor Action | System Responsibility |
+| :--- | :--- | :--- |
+| 1 | Selects the patient's appointment from the day's list and starts the consultation. | |
+| 2 | | Verifies professional authorization and patient arrival (status Arrived). Opens the patient's clinical record and presents the patient's summary and history. |
+| 3 | Records relevant observations, if any. | |
+| 4 | Records diagnosis (repeats for each additional diagnosis). | |
+| 5 | Records applicable treatment recommendations and follow-up requirements. | |
+| 6 | Indicates that the consultation is complete. | |
+| 7 | | Saves the consultation in the clinical record, marks the appointment Completed, records the activity, and presents a consultation summary. |
 
 **Extensions (Alternative Flows):**
 
@@ -274,13 +294,15 @@ The three critical use cases carry the core value of the system (getting a patie
 
 **Main Success Scenario:**
 
-1. Healthcare Professional starts a new referral for a patient.
-2. System presents the patient's summary.
-3. Healthcare Professional specifies the requested specialty.
-4. (G) System verifies that the specialty is offered at a clinic location and presents the professionals practising it. (In this iteration, referrals are for services offered at the clinic; see Open Issues.)
-5. Healthcare Professional enters the clinical reason and the priority.
-6. Healthcare Professional submits the referral.
-7. System saves the referral with status Open, records the activity, and presents the referral number.
+| Step | Actor Action | System Responsibility |
+| :--- | :--- | :--- |
+| 1 | Starts a new referral for a patient. | |
+| 2 | | Presents the patient's summary. |
+| 3 | Specifies the requested specialty. | |
+| 4 | | Verifies that the specialty is offered at a clinic location and presents the professionals practising it. |
+| 5 | Enters the clinical reason and the priority. | |
+| 6 | Submits the referral. | |
+| 7 | | Saves the referral with status Open, records the activity, and presents the referral number. |
 
 **Extensions (Alternative Flows):**
 
