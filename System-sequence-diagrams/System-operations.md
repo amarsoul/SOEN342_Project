@@ -1,4 +1,4 @@
-## System Operations (public system interface, Iteration 1)
+## System Operations
 
 **UC1 Book Appointment**
 - `searchPatients(criteria)`
