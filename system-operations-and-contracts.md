@@ -19,9 +19,9 @@
 ---
 
 **Name:** specifyService(serviceTypeId, fromDate, toDate)  
-**Responsability:** Set the desired service and time range.  
+**Responsability:** Set the service and time range.  
 **Cross References:** UC1  
-**Pre-conditons:** Booking 'b' exists.  
+**Pre-conditons:** Booking 'b' exists  
 **Post-conditons:**  
 - 'b' service type, fromDate, and toDate attributes were updated.
 
@@ -30,7 +30,7 @@
 **Name:** selectTimeSlot(slotId)  
 **Responsability:** Select an available time slot.  
 **Cross References:** UC1  
-**Pre-conditons:** Booking 'b' exists.  
+**Pre-conditons:** Booking 'b' exists  
 **Post-conditons:**  
 - 'b' was assocaited with the selected TimeSlot.
 
@@ -43,14 +43,14 @@
 **Post-conditons:**  
 - A new Appointment instance 'a' was succesfly created.  
 - 'a' was assocaited with the Patient and the timeSlot.  
-- The gimeSlot status became unavaliable.
+- The timeSlot status became unavaliable
 
 ---
 
 **Name:** cancelBooking()  
 **Responsability:** Cancel the curent booking process.  
 **Cross References:** UC1  
-**Pre-conditons:** Booking 'b' exist.  
+**Pre-conditons:** Booking 'b' exist  
 **Post-conditons:**  
 - Booking 'b' was deleted.
 
@@ -71,7 +71,7 @@
 **Name:** recordObservations(observations)  
 **Responsability:** Save clinical observations.  
 **Cross References:** UC2  
-**Pre-conditons:** Consultation 'c' exists.  
+**Pre-conditons:** Consultation 'c' exists 
 **Post-conditons:**  
 - 'c.observations' attribute was updated.
 
@@ -80,7 +80,7 @@
 **Name:** addDiagnosis(code, description)  
 **Responsability:** Add a diagnosis to the consultation.  
 **Cross References:** UC2  
-**Pre-conditons:** Consultation 'c' exists.  
+**Pre-conditons:** Consultation 'c' exists  
 **Post-conditons:**  
 - A Diagnosis instance 'd' was created.  
 - 'd' was assocated with Consultation 'c'.
@@ -117,7 +117,7 @@
 ---
 
 **Name:** endConsultation()  
-**Responsability:** Mark the consultation and appointment as completed.  
+**Responsability:** Mark the consultation and appointment completed.  
 **Cross References:** UC2  
 **Pre-conditons:** Consultation 'c' exists.  
 **Post-conditons:**  
