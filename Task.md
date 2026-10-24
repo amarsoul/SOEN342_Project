@@ -17,5 +17,5 @@ This document tracks individual task assignments and iterative contributions for
 **Karim Mellouk (@KarimMellouk22)**
 - [x] Design System Sequence Diagram (SSD) for UC1.
 - [x] Draft and structure `System-operations.md`.
-- [x] Co-author Operation Contracts and implement CO20 (`registerPatient`).
+- [x] Co-author Operation Contracts
 - [x] Setup manual task tracking and structure repository `README.md`.
