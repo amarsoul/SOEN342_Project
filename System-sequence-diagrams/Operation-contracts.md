@@ -202,3 +202,14 @@ When a precondition does not hold, the operation reports an error and changes no
 - **Postconditions:**
   - All associations of r (Concerns, Issued-by, and, if formed, Requests-specialty or Requests-professional) were broken. (association broken)
   - r was deleted. (instance deletion)
+
+  ### UC: Register Patient
+**Contract CO20: registerPatient**
+- **Operation:** registerPatient(firstName: String, lastName: String, dob: Date, phoneNumber: String, insuranceNumber: String)
+- **Cross References:** Use Case: Register Patient
+- **Preconditions:** u is authenticated as AdministrativeStaff.
+- **Postconditions:**
+  - A Patient instance p was created.
+  - p attributes (firstName, lastName, dateOfBirth, phoneNumber, insuranceNumber) were set.
+  - p.patientId was initialized.
+  - A ClinicalRecord instance cr was created and associated with p.
