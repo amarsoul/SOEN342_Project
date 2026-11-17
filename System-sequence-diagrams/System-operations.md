@@ -7,6 +7,7 @@
 - selectTimeSlot(slotId)
 - confirmAppointment()
 - cancelBooking()
+- addToWaitingList(reason, priority, professionalId [0..1]) (extension 7a, Iteration II)
 
 ### UC2 Record Consultation
 - startConsultation(appointmentId)
