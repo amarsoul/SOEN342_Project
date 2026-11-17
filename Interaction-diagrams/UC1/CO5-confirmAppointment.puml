@@ -1,0 +1,44 @@
+@startuml CO5-confirmAppointment
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO5: confirmAppointment() - UC1 Book Appointment
+participant "__:Console__" as Console
+participant "__:Appointments__" as Appointments
+participant "__a:Appointment__" as a
+participant "__r:Referral__" as r
+participant "__ts:TimeSlot__" as ts
+participant "__w:WaitingListEntry__" as w
+participant "__:ActivityLog__" as ActivityLog
+collections "__:ActivityLogEntry__" as LogSet
+[-> Console : confirmAppointment()
+note left of Console : By Controller\n(a = currentAppointment)
+Console -> Appointments : n := nextAppointmentNumber()
+note right of Appointments : By Expert\n(knows numbers in use)
+Console -> a : confirm(n)
+note right of a : By Expert
+a -> a : setAppointmentNumber(n)
+a -> a : setStatus(Confirmed)
+opt a has a Referral r
+  a -> r : setStatus(Scheduled)
+end
+a -> ts : w := getOffer()
+opt w != null (offer for a's patient, accepted by phone)
+  a -> w : accept(a)
+  w -> ts : clearOffer()
+  w -> w : setOfferedSlot(null)
+  w -> w : setAppointment(a)
+  w -> w : setStatus(Scheduled)
+end
+Console -> a : p := getPatient()
+Console -> ActivityLog : record(u, "book appointment", "Appointment", p)
+create participant "__log:ActivityLogEntry__" as log
+ActivityLog -> log : create(now, "book appointment", "Appointment", u, p)
+ActivityLog -> LogSet : add(log)
+note right of ActivityLog : By Creator
+[<-- Console : n
+@enduml

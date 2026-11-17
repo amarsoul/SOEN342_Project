@@ -1,0 +1,31 @@
+@startuml CO16-setRequestedProfessional
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO16: setRequestedProfessional(professionalId) - UC3 Issue Referral (extension 3a)
+participant "__:Console__" as Console
+participant "__:HealthcareProfessionals__" as Pros
+collections "__:HealthcareProfessional__" as HPSet
+participant "__hp:HealthcareProfessional__" as hp
+participant "__r:Referral__" as r
+[-> Console : setRequestedProfessional(professionalId)
+note left of Console : By Controller
+Console -> Pros : hp := find(professionalId)
+Pros -> HPSet : hp := find(professionalId)
+note right of HPSet : by licenceNumber
+HPSet --> Pros : hp
+Pros --> Console : hp
+Console -> hp : atClinic := practisesAtClinic()
+note right of hp : By Expert\n(Practises-at)
+alt atClinic
+  Console -> r : setRequestedProfessional(hp)
+  note right of r : By Expert\n(Requests-professional)
+  [<-- Console : professional recorded
+else
+  [<-- Console : "professional does not practise at the clinic"
+end
+@enduml

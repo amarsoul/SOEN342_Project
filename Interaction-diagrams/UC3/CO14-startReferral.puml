@@ -1,0 +1,45 @@
+@startuml CO14-startReferral
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO14: startReferral(patientId) - UC3 Issue Referral
+participant "__:Console__" as Console
+participant "__u:UserAccount__" as u
+participant "__hp:HealthcareProfessional__" as hp
+participant "__:Patients__" as Patients
+collections "__:Patient__" as PatientSet
+participant "__p:Patient__" as p
+participant "__:Referrals__" as Referrals
+collections "__:Referral__" as RefSet
+[-> Console : startReferral(patientId)
+note left of Console : By Controller
+Console -> u : hp := getProfessional()
+Console -> u : allowed := canIssueReferrals()
+Console -> hp : atClinic := practisesAtClinic()
+note right of hp : By Expert\n(Practises-at)
+Console -> Patients : p := find(patientId)
+Patients -> PatientSet : p := find(patientId)
+PatientSet --> Patients : p
+Patients --> Console : p
+alt allowed and atClinic
+  Console -> Referrals : r := makeReferral(p, hp)
+  note right of Referrals : By Creator\n(aggregates Referrals)
+  create participant "__r:Referral__" as r
+  Referrals -> r : create(p, hp)
+  note right of r : Concerns p, Issued-by hp
+  r -> r : setDateIssued(today)
+  r -> r : setStatus(Draft)
+  Referrals -> p : addReferral(r)
+  Referrals -> RefSet : add(r)
+  Referrals --> Console : r
+  Console -> Console : currentReferral := r
+  Console -> p : summary := getSummary()
+  [<-- Console : patient summary
+else not authorized
+  [<-- Console : "not authorized to issue referrals"
+end
+@enduml

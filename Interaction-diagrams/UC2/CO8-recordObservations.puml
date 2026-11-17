@@ -1,0 +1,17 @@
+@startuml CO8-recordObservations
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO8: recordObservations(observations) - UC2 Record Consultation
+participant "__:Console__" as Console
+participant "__c:Consultation__" as c
+[-> Console : recordObservations(observations)
+note left of Console : By Controller\n(c = currentConsultation)
+Console -> c : setObservations(observations)
+note right of c : By Expert
+[<-- Console : observations saved
+@enduml

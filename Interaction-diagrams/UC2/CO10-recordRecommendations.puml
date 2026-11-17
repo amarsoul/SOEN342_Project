@@ -1,0 +1,18 @@
+@startuml CO10-recordRecommendations
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO10: recordRecommendations(treatment, followUp) - UC2 Record Consultation
+participant "__:Console__" as Console
+participant "__c:Consultation__" as c
+[-> Console : recordRecommendations(treatment, followUp)
+note left of Console : By Controller
+Console -> c : setTreatmentRecommendations(treatment)
+note right of c : By Expert
+Console -> c : setFollowUpRequirements(followUp)
+[<-- Console : recommendations saved
+@enduml

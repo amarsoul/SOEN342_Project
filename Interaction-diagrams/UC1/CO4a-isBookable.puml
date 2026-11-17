@@ -1,0 +1,38 @@
+@startuml CO4a-isBookable
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO4a: isBookable(st, a) - bookable rule of CO21, used by CO3 and CO4
+participant "__ts:TimeSlot__" as ts
+participant "__a:Appointment__" as a
+participant "__w:WaitingListEntry__" as w
+participant "__st:ServiceType__" as st
+participant "__rr:ResourceRequirement__" as rr
+participant "__R:Resource__" as R
+collections "__:Appointment__" as AllocSet
+[-> ts : bookable := isBookable(st, a)
+note right of ts : By Expert
+ts -> ts : free := isAvailable or occupant == a
+ts -> ts : notPast := date >= today
+opt ts Is-offered to an entry w
+  ts -> a : p := getPatient()
+  ts -> w : forPatient := concerns(p)
+end
+ts -> st : dur := getDurationMinutes()
+ts -> st : reqs := getRequirements()
+loop for each rr in reqs
+  ts -> rr : R := getResource()
+  ts -> rr : q := getQuantityNeeded()
+  ts -> R : enough := hasCapacity(ts, q, a)
+  note right of R : By Expert\n(Is-allocated)
+  R -> AllocSet : used := quantityInUse(ts, a)
+  note right of AllocSet : active (Requested, Confirmed, Arrived)\nAppointments other than a that occupy\na slot overlapping ts; each adds the\nquantityNeeded of R for its ServiceType
+  AllocSet --> R : used
+  R --> ts : enough := used + q <= quantity
+end
+[<-- ts : free and notPast and (no offer or forPatient)\nand length >= dur and every R enough
+@enduml

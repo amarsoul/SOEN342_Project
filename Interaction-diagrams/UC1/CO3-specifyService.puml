@@ -1,0 +1,41 @@
+@startuml CO3-specifyService
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO3: specifyService(serviceTypeId, fromDate, toDate) - UC1 Book Appointment
+participant "__:Console__" as Console
+participant "__:ServiceTypes__" as ServiceTypes
+collections "__:ServiceType__" as STSet
+participant "__st:ServiceType__" as st
+participant "__a:Appointment__" as a
+collections "__:HealthcareProfessional__" as HPSet
+participant "__hp:HealthcareProfessional__" as hp
+collections "__:TimeSlot__" as TSSet
+[-> Console : specifyService(serviceTypeId, fromDate, toDate)
+note left of Console : By Controller
+Console -> ServiceTypes : st := find(serviceTypeId)
+ServiceTypes -> STSet : st := find(serviceTypeId)
+STSet --> ServiceTypes : st
+ServiceTypes --> Console : st
+Console -> a : setServiceType(st)
+note right of a : By Expert\n(Is-for)
+Console -> a : setPreferredTimeFrame(fromDate, toDate)
+Console -> st : providers := getProviders()
+note right of st : By Expert\n(Provides)
+st -> HPSet : providers := getAll()
+st --> Console : providers
+loop for each hp in providers
+  Console -> hp : slots := getBookableSlots(fromDate, toDate, st, a)
+  note right of hp : By Expert\n(Available-during)
+  hp -> TSSet : inRange := find(fromDate, toDate)
+  loop for each ts in inRange
+    ref over hp, TSSet : ts.isBookable(st, a)  (see CO4a-isBookable)
+  end
+  hp --> Console : slots
+end
+[<-- Console : available slots (or "no slots available")
+@enduml

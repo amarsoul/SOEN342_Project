@@ -1,0 +1,34 @@
+@startuml CO2-startNewBooking
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO2: startNewBooking(patientId) - UC1 Book Appointment
+participant "__:Console__" as Console
+participant "__:Patients__" as Patients
+collections "__:Patient__" as PatientSet
+participant "__p:Patient__" as p
+participant "__:Appointments__" as Appointments
+collections "__:Appointment__" as ApptSet
+[-> Console : startNewBooking(patientId)
+note left of Console : By Controller
+Console -> Patients : p := find(patientId)
+Patients -> PatientSet : p := find(patientId)
+PatientSet --> Patients : p
+Patients --> Console : p
+Console -> Appointments : a := makeAppointment(p, u)
+note right of Appointments : By Creator\n(aggregates Appointments)
+create participant "__a:Appointment__" as a
+Appointments -> a : create(p, u)
+note right of a : Booked-for p,\nBooked-by u
+a -> a : setStatus(Requested)
+Appointments -> ApptSet : add(a)
+Appointments --> Console : a
+Console -> Console : currentAppointment := a
+Console -> p : summary := getSummary()
+note right of p : By Expert
+[<-- Console : summary
+@enduml

@@ -1,0 +1,35 @@
+@startuml CO15-setRequestedSpecialty
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO15: setRequestedSpecialty(specialtyId) - UC3 Issue Referral
+participant "__:Console__" as Console
+participant "__:MedicalSpecialties__" as Specialties
+collections "__:MedicalSpecialty__" as MSSet
+participant "__ms:MedicalSpecialty__" as ms
+participant "__hp:HealthcareProfessional__" as hp
+participant "__r:Referral__" as r
+[-> Console : setRequestedSpecialty(specialtyId)
+note left of Console : By Controller\n(r = currentReferral)
+Console -> Specialties : ms := find(specialtyId)
+Specialties -> MSSet : ms := find(specialtyId)
+MSSet --> Specialties : ms
+Specialties --> Console : ms
+Console -> ms : pros := getClinicProfessionals()
+note right of ms : By Expert\n(Specializes-in)
+loop for each hp specializing in ms
+  ms -> hp : atClinic := practisesAtClinic()
+end
+ms --> Console : pros
+alt pros not empty
+  Console -> r : setRequestedSpecialty(ms)
+  note right of r : By Expert\n(Requests-specialty)
+  [<-- Console : pros
+else no clinic professional practises ms
+  [<-- Console : "specialty not offered"
+end
+@enduml

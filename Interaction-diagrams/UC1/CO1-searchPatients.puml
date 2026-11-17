@@ -1,0 +1,28 @@
+@startuml CO1-searchPatients
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO1: searchPatients(criteria) - UC1 Book Appointment
+participant "__:Console__" as Console
+participant "__:Patients__" as Patients
+collections "__:Patient__" as PatientSet
+participant "__:ActivityLog__" as ActivityLog
+collections "__:ActivityLogEntry__" as LogSet
+[-> Console : searchPatients(criteria)
+note left of Console : By Controller
+Console -> Patients : matches := search(criteria)
+note right of Patients : By Expert
+Patients -> PatientSet : matches := find(criteria)
+PatientSet --> Patients : matches
+Patients --> Console : matches
+Console -> ActivityLog : record(u, "search patients", "Patient")
+create participant "__log:ActivityLogEntry__" as log
+ActivityLog -> log : create(now, "search patients", "Patient", u)
+ActivityLog -> LogSet : add(log)
+note right of ActivityLog : By Creator
+[<-- Console : matches
+@enduml

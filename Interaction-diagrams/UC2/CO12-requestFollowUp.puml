@@ -1,0 +1,47 @@
+@startuml CO12-requestFollowUp
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO12: requestFollowUp(serviceTypeId, preferredTimeFrame) - UC2 Record Consultation
+participant "__:Console__" as Console
+participant "__:ServiceTypes__" as ServiceTypes
+collections "__:ServiceType__" as STSet
+participant "__st:ServiceType__" as st
+participant "__hp:HealthcareProfessional__" as hp
+participant "__c:Consultation__" as c
+participant "__:Appointments__" as Appointments
+collections "__:Appointment__" as ApptSet
+[-> Console : requestFollowUp(serviceTypeId, preferredTimeFrame)
+note left of Console : By Controller
+Console -> ServiceTypes : st := find(serviceTypeId)
+ServiceTypes -> STSet : st := find(serviceTypeId)
+STSet --> ServiceTypes : st
+ServiceTypes --> Console : st
+Console -> st : providers := getProviders()
+loop for each hp in providers, until a slot is found
+  Console -> hp : found := hasAvailableSlot(preferredTimeFrame)
+  note right of hp : By Expert\n(Available-during:\nisAvailable = true)
+end
+alt found
+  Console -> c : p := getPatient()
+  Console -> Appointments : fa := makeFollowUp(p, st, preferredTimeFrame, u)
+  note right of Appointments : By Creator\n(aggregates Appointments)
+  create participant "__fa:Appointment__" as fa
+  Appointments -> fa : create(p, u)
+  note right of fa : Booked-for p, Booked-by u;\nno TimeSlot, no professional
+  fa -> fa : setStatus(Requested)
+  Appointments -> fa : setServiceType(st)
+  Appointments -> fa : setPreferredTimeFrame(preferredTimeFrame)
+  Appointments -> ApptSet : add(fa)
+  Appointments --> Console : fa
+  Console -> c : addFollowUp(fa)
+  note right of c : By Expert\n(Requests-follow-up)
+  [<-- Console : follow-up appointment (Requested)
+else no availability in that time frame
+  [<-- Console : "no availability"
+end
+@enduml

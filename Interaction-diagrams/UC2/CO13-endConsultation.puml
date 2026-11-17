@@ -1,0 +1,35 @@
+@startuml CO13-endConsultation
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO13: endConsultation() - UC2 Record Consultation
+participant "__:Console__" as Console
+participant "__c:Consultation__" as c
+participant "__a:Appointment__" as a
+participant "__:ActivityLog__" as ActivityLog
+collections "__:ActivityLogEntry__" as LogSet
+[-> Console : endConsultation()
+note left of Console : By Controller
+Console -> c : ended := end()
+note right of c : By Expert
+c -> c : entry := hasClinicalEntry()
+note right of c : observations, treatment, follow-up\nor at least one Diagnosis (G);\nno Diagnosis required
+alt entry
+  c -> c : setEndTime(now)
+  c -> a : setStatus(Completed)
+  c --> Console : true
+  Console -> c : p := getPatient()
+  Console -> ActivityLog : record(u, "record consultation", "Consultation", p)
+  create participant "__log:ActivityLogEntry__" as log
+  ActivityLog -> log : create(now, "record consultation", "Consultation", u, p)
+  ActivityLog -> LogSet : add(log)
+  [<-- Console : consultation summary
+else no clinical entry
+  c --> Console : false
+  [<-- Console : "at least one clinical entry is required"
+end
+@enduml

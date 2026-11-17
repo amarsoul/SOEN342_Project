@@ -1,0 +1,18 @@
+@startuml CO17-enterReferralDetails
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO17: enterReferralDetails(clinicalReason, priority) - UC3 Issue Referral
+participant "__:Console__" as Console
+participant "__r:Referral__" as r
+[-> Console : enterReferralDetails(clinicalReason, priority)
+note left of Console : By Controller
+Console -> r : setClinicalReason(clinicalReason)
+note right of r : By Expert
+Console -> r : setPriority(priority)
+[<-- Console : details saved
+@enduml

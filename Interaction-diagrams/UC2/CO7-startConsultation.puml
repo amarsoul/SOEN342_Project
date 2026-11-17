@@ -1,0 +1,61 @@
+@startuml CO7-startConsultation
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO7: startConsultation(appointmentId) - UC2 Record Consultation
+participant "__:Console__" as Console
+participant "__:Appointments__" as Appointments
+collections "__:Appointment__" as ApptSet
+participant "__u:UserAccount__" as u
+participant "__a:Appointment__" as a
+participant "__p:Patient__" as p
+participant "__cr:ClinicalRecord__" as cr
+collections "__:Consultation__" as ConsSet
+participant "__:ActivityLog__" as ActivityLog
+collections "__:ActivityLogEntry__" as LogSet
+[-> Console : startConsultation(appointmentId)
+note left of Console : By Controller
+Console -> Appointments : a := find(appointmentId)
+Appointments -> ApptSet : a := find(appointmentId)
+ApptSet --> Appointments : a
+Appointments --> Console : a
+Console -> u : clinical := hasClinicalAccess()
+Console -> u : hp := getProfessional()
+Console -> a : mine := isScheduledWith(hp)
+note right of a : By Expert
+Console -> a : p := getPatient()
+alt clinical and mine
+  Console -> a : arrived := isArrived()
+  alt arrived
+    Console -> p : cr := getClinicalRecord()
+    Console -> cr : c := startConsultation(a)
+    note right of cr : By Creator\n(contains Consultations)
+    create participant "__c:Consultation__" as c
+    cr -> c : create(a)
+    note right of c : Conducted-during a
+    c -> c : setDate(today)
+    c -> c : setStartTime(now)
+    cr -> ConsSet : add(c)
+    cr --> Console : c
+    Console -> Console : currentConsultation := c
+    Console -> ActivityLog : record(u, "open clinical record", "ClinicalRecord", p)
+    create participant "__log:ActivityLogEntry__" as log
+    ActivityLog -> log : create(now, "open clinical record", "ClinicalRecord", u, p)
+    ActivityLog -> LogSet : add(log)
+    Console -> cr : history := getHistory()
+    [<-- Console : patient summary and history
+  else not arrived
+    [<-- Console : "patient has not arrived"
+  end
+else access denied
+  Console -> ActivityLog : record(u, "access denied", "ClinicalRecord", p)
+  create participant "__log:ActivityLogEntry__" as log
+  ActivityLog -> log : create(now, "access denied", "ClinicalRecord", u, p)
+  ActivityLog -> LogSet : add(log)
+  [<-- Console : "access denied"
+end
+@enduml

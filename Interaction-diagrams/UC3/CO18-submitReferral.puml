@@ -1,0 +1,34 @@
+@startuml CO18-submitReferral
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO18: submitReferral() - UC3 Issue Referral
+participant "__:Console__" as Console
+participant "__r:Referral__" as r
+participant "__:Referrals__" as Referrals
+participant "__:ActivityLog__" as ActivityLog
+collections "__:ActivityLogEntry__" as LogSet
+[-> Console : submitReferral()
+note left of Console : By Controller
+Console -> r : complete := isComplete()
+note right of r : By Expert\n(specialty or professional,\nreason and priority set)
+alt complete
+  Console -> Referrals : n := nextReferralNumber()
+  note right of Referrals : By Expert\n(knows numbers in use)
+  Console -> r : submit(n)
+  r -> r : setReferralNumber(n)
+  r -> r : setStatus(Open)
+  Console -> r : p := getPatient()
+  Console -> ActivityLog : record(u, "issue referral", "Referral", p)
+  create participant "__log:ActivityLogEntry__" as log
+  ActivityLog -> log : create(now, "issue referral", "Referral", u, p)
+  ActivityLog -> LogSet : add(log)
+  [<-- Console : n
+else missing information
+  [<-- Console : missing information
+end
+@enduml

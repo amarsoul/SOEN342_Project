@@ -1,0 +1,21 @@
+@startuml CO9-addDiagnosis
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO9: addDiagnosis(code, description) - UC2 Record Consultation
+participant "__:Console__" as Console
+participant "__c:Consultation__" as c
+collections "__:Diagnosis__" as DiagSet
+[-> Console : addDiagnosis(code, description)
+note left of Console : By Controller
+Console -> c : addDiagnosis(code, description)
+note right of c : By Creator\n(Records: contains Diagnoses)
+create participant "__d:Diagnosis__" as d
+c -> d : create(code, description)
+c -> DiagSet : add(d)
+[<-- Console : diagnosis added
+@enduml

@@ -1,0 +1,36 @@
+@startuml CO11-addPrescriptionItem
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO11: addPrescriptionItem(medicationId, dosage, frequency, duration, quantity) - UC2
+participant "__:Console__" as Console
+participant "__:Medications__" as Medications
+collections "__:Medication__" as MedSet
+participant "__c:Consultation__" as c
+participant "__pr:Prescription__" as pr
+collections "__:PrescriptionLineItem__" as LineSet
+[-> Console : addPrescriptionItem(medicationId, dosage,\n frequency, duration, quantity)
+note left of Console : By Controller
+Console -> Medications : m := find(medicationId)
+Medications -> MedSet : m := find(medicationId)
+MedSet --> Medications : m
+Medications --> Console : m
+Console -> c : addPrescriptionItem(m, dosage, frequency, duration, quantity)
+c -> c : pr := getPrescription()
+opt pr == null (first medication of this consultation)
+  note right of c : By Creator\n(Issues: records its Prescription)
+  c -> pr ** : create(today)
+  c -> c : setPrescription(pr)
+end
+c -> pr : addLineItem(m, dosage, frequency, duration, quantity)
+note right of pr : By Creator\n(contains line items)
+create participant "__li:PrescriptionLineItem__" as li
+pr -> li : create(m, dosage, frequency, duration, quantity)
+note right of li : Prescribes m
+pr -> LineSet : add(li)
+[<-- Console : prescription line item
+@enduml

@@ -1,0 +1,82 @@
+@startuml CO4-selectTimeSlot
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+skinparam noteBorderThickness 0.5
+title CO4: selectTimeSlot(slotId) - UC1 Book Appointment
+participant "__:Console__" as Console
+participant "__:TimeSlots__" as TimeSlots
+collections "__:TimeSlot__" as TSSet
+participant "__a:Appointment__" as a
+participant "__ts:TimeSlot__" as ts
+participant "__hp:HealthcareProfessional__" as hp
+participant "__st:ServiceType__" as st
+participant "__p:Patient__" as p
+collections "__:Referral__" as RefSet
+participant "__ts':TimeSlot__" as old
+participant "__r':Referral__" as oldr
+participant "__R':Resource__" as oldR
+participant "__r:Referral__" as r
+participant "__rr:ResourceRequirement__" as rr
+participant "__R:Resource__" as R
+[-> Console : selectTimeSlot(slotId)
+note left of Console : By Controller
+Console -> TimeSlots : ts := find(slotId)
+TimeSlots -> TSSet : ts := find(slotId)
+TSSet --> TimeSlots : ts
+TimeSlots --> Console : ts
+Console -> a : ok := selectSlot(ts)
+note right of a : By Expert\n(a knows st, p and its\ncurrent selection)
+a -> ts : hp := getProfessional()
+a -> hp : offers := provides(st)
+a -> ts : bookable := isBookable(st, a)
+ref over ts, st : CO4a-isBookable
+opt st.requiresReferral
+  a -> st : ms := getSpecialty()
+  a -> p : r := findValidReferral(ms, hp)
+  note right of p : By Expert\n(Concerns)
+  p -> RefSet : r := find(Open or Scheduled,\n requests ms or hp)
+  p --> a : r
+end
+alt offers and bookable and (not st.requiresReferral or r found)
+  opt a already holds a selection (ts', its referral, its resources)
+    a -> old : setOccupant(null)
+    opt ts' != ts
+      a -> old : setAvailable(true)
+    end
+    opt a was linked to a referral r'
+      a -> oldr : removeAppointment(a)
+    end
+    loop for each Resource R' allocated to a
+      a -> oldR : deallocate(a)
+    end
+    a -> a : clearSelection()
+    note right of a : breaks Occupies, Scheduled-with,\nResults-in and Is-allocated on a's side
+  end
+  a -> ts : setAvailable(false)
+  a -> ts : setOccupant(a)
+  a -> a : setTimeSlot(ts)
+  a -> a : setProfessional(hp)
+  a -> ts : d := getDate()
+  a -> ts : t := getStartTime()
+  a -> a : setDate(d)
+  a -> a : setStartTime(t)
+  opt st.requiresReferral
+    a -> r : addAppointment(a)
+    a -> a : setReferral(r)
+  end
+  a -> st : reqs := getRequirements()
+  loop for each rr in reqs
+    a -> rr : R := getResource()
+    a -> R : allocate(a)
+    a -> a : addResource(R)
+  end
+  a --> Console : true
+else selection rejected (earlier selection kept unchanged)
+  a --> Console : false
+end
+[<-- Console : appointment details,\nor "slot no longer available" / "referral required"
+@enduml
