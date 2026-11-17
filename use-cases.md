@@ -1,5 +1,4 @@
 # Use Case Model
-...
 
 ## Actors
 
@@ -374,7 +373,7 @@ The three critical use cases carry the core value of the system (getting a patie
 - Healthcare Professional: Wants to be offered only for services they provide, within the availability made for them.
 - Clinic: Wants professionals' time and resources used fully, with no double bookings.
 
-**Preconditions:** Administrative Staff is identified and authenticated. Availabilities have been made (UC5) or imported (*Import Availability from CSV*).
+**Preconditions:** Administrative Staff is identified and authenticated. (Availability records do not need to exist: the system starts empty, and a search with no availability returns no slots, see extension 5a.)
 
 **Success Guarantee (Postconditions):** The available time slots matching the criteria are presented, sorted by date and time. No domain object is changed; (G) the search is not logged because it touches no patient information.
 
@@ -397,7 +396,7 @@ The three critical use cases carry the core value of the system (getting a patie
   2. Administrative Staff change the criteria (resume at step 2) or end the search.
 - 4a. The service requires resources (*Check Resource Availability*, extension point Resources):
   1. System keeps only the slots for which every required resource is free for that time.
-- 5a. Professionals match but none has an available slot in the date range: **(failure scenario, see SSD)**
+- 5a. Professionals match but none has an available slot in the date range (including when no availability has been made or imported yet): **(failure scenario, see SSD)**
   1. System indicates that no slots are available.
   2. Administrative Staff specify another date range (resume at step 2), end the search, or, inside a booking, add the patient to the waiting list (UC1 extension 7a).
 
@@ -448,7 +447,7 @@ The three critical use cases carry the core value of the system (getting a patie
 8. Administrative Staff confirm.
 9. System saves the availability and its time slots, records the activity, and presents a summary.
 
-Example: during November 2026, Dr. X is available every Monday from 9:00 to 12:00 in 30-minute slots, which gives 4 Mondays × 6 slots = 24 slots.
+Example: during November 2026, Dr. X is available every Monday from 9:00 to 12:00 in 30-minute slots, which gives 5 Mondays (November 2, 9, 16, 23 and 30) × 6 slots = 30 slots.
 
 **Extensions (Alternative Flows):**
 
