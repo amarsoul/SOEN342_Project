@@ -5,10 +5,10 @@
 
 | Actor | Type | Goal |
 | --- | --- | --- |
-| Administrative Staff | Primary | Registers patients, requests, books, confirms, reschedules and cancels appointments, registers arrivals, enters referrals from external physicians, handles invoices and payments. |
-| Patient | Primary | Requests appointments (a request is confirmed by Administrative Staff). |
+| Administrative Staff | Primary | Registers patients, requests, books, confirms, reschedules and cancels appointments, registers arrivals, enters referrals from external physicians, handles invoices and payments. Searches availability, makes, imports and exports professionals' availabilities, and manages the waiting list. |
+| Patient | Primary | Requests appointments (a request is confirmed by Administrative Staff) and requests placement on the waiting list. |
 | Healthcare Professional | Primary | Conducts consultations, records clinical information, issues prescriptions and referrals. |
-| Clinic Administrator | Primary | Manages professionals and clinic locations, reviews the activity log. |
+| Clinic Administrator | Primary | Manages professionals, clinic locations, predefined resources and the resources each service requires; reviews the activity log. |
 
 External physicians who refer patients do not use the system. When the clinic receives their referral, Administrative Staff record it (*Record External Referral*); staff do not issue the referral themselves. RAMQ claims submission, electronic prescribing to pharmacies and provincial systems are external at this phase and are not part of the system boundary.
 
@@ -19,8 +19,9 @@ External physicians who refer patients do not use the system. When the clinic re
 | UC1 Book Appointment | Critical | Administrative Staff |
 | UC2 Record Consultation | Critical | Healthcare Professional |
 | UC3 Issue Referral | Critical | Healthcare Professional |
+| UC4 Verify Availability (Iteration II) | Critical | Administrative Staff (also included by UC1, Request Appointment, Reschedule Appointment and Request Follow-up Appointment) |
+| UC5 Make Availability (Iteration II) | Critical | Administrative Staff |
 | Request Appointment | Non-critical | Patient, Administrative Staff |
-| Verify Availability (included) | Non-critical | (subfunction of UC1, Request Appointment, Reschedule Appointment) |
 | Search Patient (also included) | Non-critical | Administrative Staff, Healthcare Professional |
 | Register Patient | Non-critical | Administrative Staff |
 | Confirm Pending Appointment | Non-critical | Administrative Staff |
@@ -38,8 +39,21 @@ External physicians who refer patients do not use the system. When the clinic re
 | Manage Clinic Locations | Non-critical | Clinic Administrator |
 | View Activity Log | Non-critical | Clinic Administrator |
 | Log In | Non-critical | All human actors |
+| Import Availability from CSV (Iteration II) | Non-critical | Administrative Staff |
+| Export Availability to CSV (Iteration II) | Non-critical | Administrative Staff |
+| Request Waiting List Placement (Iteration II, extends UC1 and Request Appointment) | Non-critical | Patient, Administrative Staff |
+| Identify Eligible Waitlisted Patients (Iteration II, included by Cancel Appointment) | Non-critical | (subfunction) |
+| Offer Appointment by Phone (Iteration II, extends Cancel Appointment) | Non-critical | Administrative Staff |
+| Remove Patient from Waiting List (Iteration II, extends Offer Appointment by Phone) | Non-critical | Administrative Staff |
+| Update Waiting List Priority (Iteration II) | Non-critical | Administrative Staff |
+| Manage Predefined Resources (Iteration II) | Non-critical | Clinic Administrator |
+| Define Service Resource Requirements (Iteration II) | Non-critical | Clinic Administrator |
+| Allocate Resources to Appointment (Iteration II, extends UC1) | Non-critical | (Administrative Staff, through UC1) |
+| Check Resource Availability (Iteration II, extends UC4) | Non-critical | (subfunction) |
 
-The three critical use cases carry the core value of the system (getting a patient in front of the right professional, capturing clinical information, and routing patients between professionals) and the highest risk (scheduling constraints, confidentiality of clinical data, referral rules). They are specified below in fully-dressed format. The non-critical use cases have brief scenarios.
+The three critical use cases carry the core value of the system (getting a patient in front of the right professional, capturing clinical information, and routing patients between professionals) and the highest risk (scheduling constraints, confidentiality of clinical data, referral rules).
+
+**Iteration II.** Two use cases become critical. UC4 Verify Availability is now also used directly by staff, and every booking depends on it. UC5 Make Availability is the only way, besides CSV import, that professionals get bookable time slots, so without it nothing can be booked. Both are part of the proof of concept. Import and Export CSV are also in the proof of concept, but they are non-critical: they move existing availability data in and out and add no scheduling rules of their own. The waiting list and resource use cases are non-critical in this iteration; as the assignment suggests, their design is left for Iteration III. They are specified below in fully-dressed format. The non-critical use cases have brief scenarios.
 
 **How to read requirements and decisions.** Statements taken from the assignment are written plainly. Statements marked **(G)** are modeling decisions made by our group to fill gaps in the assignment. They are not requirements imposed by the assignment.
 
@@ -57,7 +71,7 @@ The three critical use cases carry the core value of the system (getting a patie
 
 (G) A Patient requests appointments only for themselves. (G) The selected slot is held for the pending request and is released if the request is rejected or cancelled.
 
-**Verify Availability (included by UC1, Request Appointment and Reschedule Appointment).** Given a service type and a time frame, the system determines which professionals provide the service and which of their time slots are available, applying the applicable scheduling constraints (professional's schedule, clinic location, service duration).
+**Verify Availability.** Critical since Iteration II; see the fully-dressed UC4 below.
 
 **Confirm Pending Appointment.** Administrative Staff select an appointment that was requested earlier (through *Request Appointment*, or as a follow-up request from UC2) and is still pending. If the request has no time slot yet, staff select an available one. Staff confirm the request and its status becomes Confirmed, or they reject it and its status becomes Cancelled. (G) The system checks again that the slot is still available before confirming. This use case covers only appointments requested earlier. It does not cover the confirmation inside UC1 Book Appointment, where staff book and confirm in the same session for a patient who is present at the clinic.
 
@@ -66,6 +80,31 @@ The three critical use cases carry the core value of the system (getting a patie
 **Cancel Appointment.** Administrative Staff select an appointment and cancel it. The system sets its status to Cancelled, frees its time slot, and logs the activity.
 
 **Register Patient Arrival.** On the day of the appointment, the Patient presents at the clinic. Administrative Staff always search for the patient first (include *Search Patient*). The system lists the patient's appointments for that day; staff select the appointment, and the system sets its status to Arrived, records the arrival time, and logs the activity. (G) Registering an arrival directly from an appointment identifier, without the search, is not part of this workflow.
+
+### Waiting list (Iteration II)
+
+**Request Waiting List Placement (extends UC1 at extension 7a and Request Appointment, if no slot is available).** No professional has an available slot for the patient's request. The Patient (for themselves) or Administrative Staff ask to place the patient on the waiting list for a particular professional, a specialty, or a date range; (G) a service type may also be given. Staff give a reason and an initial priority. The system records the waiting list entry with status Waiting, the date and time of the request, and the staff member or patient account that added it, and logs the activity. (G) When a Patient requests placement, the entry gets priority Routine; only Administrative Staff set or change priority.
+
+**Identify Eligible Waitlisted Patients (included by Cancel Appointment).** When an appointment is cancelled and its time slot is freed, the system finds the waiting list entries with status Waiting whose criteria match the freed slot: the slot's professional, the professional's specialty, the slot's service type where one is requested, and a slot date inside the requested date range. The system lists the eligible patients by priority, (G) then by date requested (oldest first).
+
+**Offer Appointment by Phone (extends Cancel Appointment, if an eligible patient is found).** Administrative Staff select the first eligible patient in the list and call them. The system marks the entry Offered and holds the freed slot for it.
+1. If the patient accepts, staff book the appointment through UC1 (by phone). The system links the entry to the booked appointment and sets its status to Scheduled.
+2. If the patient declines, the system sets the entry's status to OfferDeclined and releases the slot; staff may then remove the patient from the waiting list (*Remove Patient from Waiting List*) and offer the slot to the next eligible patient.
+3. (G) If the patient cannot be reached, staff record the attempt, the entry returns to Waiting, and the slot is offered to the next eligible patient.
+
+**Remove Patient from Waiting List (extends Offer Appointment by Phone, if the patient declines).** Administrative Staff choose to remove a patient's entry from the waiting list. The system sets its status to Removed and logs the activity. (G) Staff may also remove an entry at any other time, for example at the patient's request.
+
+**Update Waiting List Priority.** Administrative Staff select a waiting list entry with status Waiting and change its priority (Urgent, High, Routine). The system records the new priority and logs the change; the entry's place among eligible patients changes accordingly.
+
+### Resources (Iteration II)
+
+**Manage Predefined Resources.** The Clinic Administrator adds, updates or retires the clinic's predefined resources: examination rooms, specialized equipment, and human roles such as a nurse assisting a physician. For each resource they give a name, a type (Room, Equipment or HumanRole), (G) how many are available at the same time, and, for rooms and equipment, the clinic location where it is. Human roles are not tied to specific personnel.
+
+**Define Service Resource Requirements.** The Clinic Administrator selects a service type and states which predefined resources it requires and (G) how many of each (for example, one procedure room and one nurse).
+
+**Allocate Resources to Appointment (extends UC1, if the service requires resources).** When an appointment is booked for a service that requires resources, the system checks that each required resource is free for the appointment's time (include *Check Resource Availability*) and allocates them to the appointment. If a required resource is not free, the slot cannot be booked and staff select another slot.
+
+**Check Resource Availability (extends UC4, if the service requires resources).** For a candidate time slot, the system checks that, for every resource the service requires, the quantity needed plus the quantity already allocated to overlapping appointments does not exceed the resource's quantity. Slots that fail the check are not presented as available.
 
 ### Patients
 
@@ -101,6 +140,10 @@ The three critical use cases carry the core value of the system (getting a patie
 
 **View Activity Log.** (G) The Clinic Administrator reviews the recorded activities: who accessed or changed which patient's information, and when. The log supports accountability and the protection of patients' confidentiality.
 
+**Import Availability from CSV (Iteration II, specializes Manage Professional Schedule).** Administrative Staff specify the path of a CSV file of professional availabilities (first name, last name, title, specialty, date, start, end and (G) location). The system reads each row, finds or creates the professional, specialty and clinic location, and creates an available time slot. Rows that are malformed or would overlap an existing slot of the same professional are skipped and reported. The system reports how many slots were imported and how many rows were rejected. The system starts empty, so this is how initial data is loaded.
+
+**Export Availability to CSV (Iteration II, specializes Manage Professional Schedule).** Administrative Staff specify a destination file. The system writes every time slot in the system to the file in the same format used for import, (G) adding a column that says whether each slot is available or booked, and reports how many rows were written.
+
 **Log In.** A Patient, Administrative Staff member, Healthcare Professional or Clinic Administrator identifies and authenticates themselves. The system grants the access associated with the user's role.
 
 ---
@@ -113,7 +156,7 @@ The three critical use cases carry the core value of the system (getting a patie
 
 **Primary Actor:** Administrative Staff
 
-**Note:** In UC1, staff book for a patient who is present at the clinic, and the appointment is requested and confirmed in the same session. Confirming an appointment that was requested earlier is a separate use case, *Confirm Pending Appointment*.
+**Note:** In UC1, staff book for a patient who is present at the clinic or on the phone, and the appointment is requested and confirmed in the same session. Confirming an appointment that was requested earlier is a separate use case, *Confirm Pending Appointment*.
 
 **Stakeholders and Interests:**
 
@@ -122,13 +165,13 @@ The three critical use cases carry the core value of the system (getting a patie
 - Healthcare Professional: Wants appointments only within their schedule and only for services they provide; wants referral-only services booked only with a valid referral.
 - Clinic: Wants efficient use of professionals' time and an accountable record of who booked what.
 
-**Preconditions:** Administrative Staff is identified and authenticated. The patient is present at the clinic.
+**Preconditions:** Administrative Staff is identified and authenticated. The patient is present at the clinic or is on the phone with staff (including a waitlisted patient who accepts an offered slot, see *Offer Appointment by Phone*).
 
 **Success Guarantee (Postconditions):** An Appointment is saved for the patient with a professional, a service type and a time slot. The time slot is no longer available. If the service requires a referral, the appointment is linked to the patient's valid referral (by specialty or by requested professional). The appointment is confirmed and the booking is recorded in the activity log.
 
 **Main Success Scenario:**
 
-1. Patient arrives at the clinic and asks to book an appointment.
+1. Patient arrives at the clinic, or calls the clinic, and asks to book an appointment.
 2. Administrative Staff searches for the patient by insurance number, date of birth, phone number, or partial first and/or last name (include *Search Patient*).
 3. System presents the matching patient.
 4. Administrative Staff starts a new booking for the patient.
@@ -152,7 +195,11 @@ The three critical use cases carry the core value of the system (getting a patie
   2. Administrative Staff selects the correct patient.
 - 7a. No professional has an available slot for the service in the requested range:
   1. System indicates that no slots are available.
-  2. Administrative Staff specifies another date range (resume at step 6), or cancels the booking; no appointment is saved.
+  2. Administrative Staff either:
+     - specifies another date range, and the scenario resumes at step 6; or
+     - cancels the booking; no appointment is saved; or
+     - adds the patient to the waiting list (*Request Waiting List Placement*, **see SSD**), giving a reason, a priority and, optionally, a requested professional.
+  3. If the patient is added to the waiting list, the system records a waiting list entry with the patient, the service type, its specialty and the requested date range, with status Waiting. The underway booking is removed; no appointment is saved. The use case ends.
 - 9a. The selected slot was taken by another booking in the meantime:
   1. System indicates that the slot is no longer available.
   2. Scenario resumes at step 7.
@@ -309,3 +356,131 @@ The three critical use cases carry the core value of the system (getting a patie
 
 - Does a referral expire after a period of time?
 - Can a referral be addressed to a professional outside the clinic (outgoing referral)?
+
+---
+
+## UC4: Verify Availability (Iteration II)
+
+**Scope:** Appointment Tracking System
+
+**Level:** User goal when used directly by staff; subfunction when included by UC1, Request Appointment, Reschedule Appointment and Request Follow-up Appointment.
+
+**Primary Actor:** Administrative Staff
+
+**Stakeholders and Interests:**
+
+- Administrative Staff: Wants to see quickly which professionals are free for a service, so they can answer patients at the desk or on the phone.
+- Patient: Wants accurate options; a slot shown as free must really be bookable.
+- Healthcare Professional: Wants to be offered only for services they provide, within the availability made for them.
+- Clinic: Wants professionals' time and resources used fully, with no double bookings.
+
+**Preconditions:** Administrative Staff is identified and authenticated. Availabilities have been made (UC5) or imported (*Import Availability from CSV*).
+
+**Success Guarantee (Postconditions):** The available time slots matching the criteria are presented, sorted by date and time. No domain object is changed; (G) the search is not logged because it touches no patient information.
+
+**Main Success Scenario:**
+
+1. Administrative Staff start a search for availability.
+2. Administrative Staff specify a date range and at least one criterion: a service type, a medical specialty, or a specific healthcare professional.
+3. System finds the healthcare professionals who match the criteria (who provide the service, practise the specialty, or are the named professional).
+4. System verifies the scheduling constraints (include *Verify Scheduling Constraints*): the slot is within the professional's availability, at a clinic location where they practise, long enough for the service's duration, not occupied by an appointment, and not in the past.
+5. System presents the available time slots, sorted by date and time, each with the professional, specialty, clinic location, date, start and end time.
+6. Administrative Staff review the results. When UC4 is included by a booking, the including use case continues with the selection of a slot.
+
+**Extensions (Alternative Flows):**
+
+- 2a. No criterion or an invalid date range (end before start) is given:
+  1. System indicates the missing or invalid input.
+  2. Scenario resumes at step 2.
+- 3a. No professional matches the criteria (for example, no one provides the requested service): **(failure scenario, see SSD)**
+  1. System indicates that no professional matches.
+  2. Administrative Staff change the criteria (resume at step 2) or end the search.
+- 4a. The service requires resources (*Check Resource Availability*, extension point Resources):
+  1. System keeps only the slots for which every required resource is free for that time.
+- 5a. Professionals match but none has an available slot in the date range: **(failure scenario, see SSD)**
+  1. System indicates that no slots are available.
+  2. Administrative Staff specify another date range (resume at step 2), end the search, or, inside a booking, add the patient to the waiting list (UC1 extension 7a).
+
+**Special Requirements:**
+
+- (G) Results are presented in under 2 seconds for a clinic's full availability.
+
+**Technology and Data Variations List:**
+
+- Dates entered as YYYY-MM-DD and times as HH:MM, as in the CSV files.
+
+**Frequency of Occurrence:** Continuous during clinic hours; on every booking.
+
+**Open Issues:**
+
+- Should results be limited to a maximum number of slots per professional?
+
+---
+
+## UC5: Make Availability (Iteration II)
+
+**Scope:** Appointment Tracking System
+
+**Level:** User goal
+
+**Primary Actor:** Administrative Staff
+
+**Stakeholders and Interests:**
+
+- Administrative Staff: Wants to set up a professional's schedule for weeks at once, without entering each slot.
+- Healthcare Professional: Wants availability to match exactly when and where they work.
+- Patient: Wants enough bookable slots.
+- Clinic: Wants no overlapping slots and no slot at a location where the professional does not practise.
+
+**Preconditions:** Administrative Staff is identified and authenticated. The healthcare professional exists and practises at one or more clinic locations.
+
+**Success Guarantee (Postconditions):** An Availability is saved for the professional with its date range, repetition pattern, start and end time, slot duration and clinic location. The available time slots it generates are saved and can be found by UC4. The activity is recorded in the activity log.
+
+**Main Success Scenario:**
+
+1. Administrative Staff start making availability.
+2. Administrative Staff select a healthcare professional.
+3. System presents the professional's clinic locations and existing availability.
+4. Administrative Staff select a clinic location and specify a date range (from date, to date).
+5. Administrative Staff specify the repetition pattern: daily, weekly on one or more days of the week, or monthly on a day of the month.
+6. Administrative Staff specify the start time, end time and slot duration.
+7. System generates the time slots for every matching date in the range and presents a preview: the dates, times and number of slots.
+8. Administrative Staff confirm.
+9. System saves the availability and its time slots, records the activity, and presents a summary.
+
+Example: during November 2026, Dr. X is available every Monday from 9:00 to 12:00 in 30-minute slots, which gives 4 Mondays × 6 slots = 24 slots.
+
+**Extensions (Alternative Flows):**
+
+- 4a. The from date is after the to date, or the range is in the past:
+  1. System indicates the invalid date range.
+  2. Scenario resumes at step 4.
+- 5a. Weekly is chosen without a day of the week, or monthly with an invalid day of the month:
+  1. System indicates the missing or invalid pattern.
+  2. Scenario resumes at step 5.
+- 6a. The end time is not after the start time, or the period is not a whole number of slots:
+  1. System indicates the invalid times.
+  2. Scenario resumes at step 6.
+- 7a. No date in the range matches the pattern (for example, Mondays in a range with no Monday):
+  1. System indicates that no slots would be generated.
+  2. Scenario resumes at step 4.
+- 7b. Some generated slots overlap the professional's existing slots (at any location): **(failure scenario, see SSD)**
+  1. System lists the overlapping slots.
+  2. Administrative Staff either change the date range, pattern or times (resume at step 4), or confirm to save only the slots that do not overlap (resume at step 9), or cancel; nothing is saved.
+- 8a. Administrative Staff cancel before confirming:
+  1. Nothing is saved.
+
+**Special Requirements:**
+
+- Relevant activities, including changes to schedules, are recorded for accountability.
+
+**Technology and Data Variations List:**
+
+- Availability may also be loaded in bulk through *Import Availability from CSV*.
+
+**Frequency of Occurrence:** A few times per month per professional.
+
+**Open Issues:**
+
+- What happens to booked appointments when an availability is later reduced or removed?
+
