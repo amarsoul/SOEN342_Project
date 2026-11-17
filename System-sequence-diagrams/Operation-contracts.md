@@ -74,6 +74,21 @@ When a precondition does not hold, the operation reports an error and changes no
   - All associations of a (Booked-for, Booked-by, Is-for, and, if formed, Occupies, Scheduled-with, Results-in) were broken. (association broken)
   - a was deleted. (instance deletion)
 
+**Contract CO20: addToWaitingList** (Iteration II)
+- **Operation:** addToWaitingList(reason: String, priority: Priority, professionalId: String [0..1])
+- **Cross References:** Use Case: Book Appointment (extension 7a), Request Waiting List Placement
+- **Preconditions:** u is authenticated as AdministrativeStaff. A booking *a* is underway (a.status is Requested and a.appointmentNumber is not set), a is associated with a ServiceType *st*, and specifyService() found no available TimeSlot. If professionalId is given, a HealthcareProfessional *hp* with licenceNumber = professionalId exists and Provides st.
+- **Postconditions:**
+  - A WaitingListEntry instance *w* was created. (instance creation)
+  - w.dateRequested was set to the current date and time, w.reason to reason, w.priority to priority and w.status to Waiting. (attribute modification)
+  - w.fromDate and w.toDate were set to the date range given in specifyService(). (attribute modification)
+  - w was associated with the Patient of a (Concerns), with st (Requests-service) and with u (Added-by). (association formed)
+  - If st Belongs-to a MedicalSpecialty *ms*, w was associated with ms (Requests-specialty). (association formed)
+  - If professionalId was given, w was associated with hp (Requests-professional). (association formed)
+  - All associations of a were broken and a was deleted, as in cancelBooking() (CO6). (association broken, instance deletion)
+  - An ActivityLogEntry *log* was created with action "add to waiting list" and recordType "WaitingListEntry", and associated with u and with the Patient of w. (instance creation, attribute modification, association formed)
+- **Note:** The underway booking held no TimeSlot (none was available), so no slot is released.
+
 ### UC2 Record Consultation
 
 **Contract CO7: startConsultation**
