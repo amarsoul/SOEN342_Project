@@ -32,16 +32,16 @@ Out of scope: CO6 and CO19 (cancel operations), CO20 to CO36 (Iteration II contr
 
 ## How it was derived
 
-It follows the course progression: operation contracts → interaction diagrams → design classes → methods → attributes → associations and navigability (Lecture 13 and Lecture 15).
+Here is the general progression: operation contracts → interaction diagrams → design classes → methods → attributes → associations and navigability.
 
-1. **Design classes.** Every lifeline type in the 18 diagrams becomes a class. A multiobject (`:Patient`, `:Appointment`, …) is not a class. Lecture 13 says a message to a multiobject is a message to the collection that the sender holds, so it becomes a collection reference of the sender.
+1. **Design classes.** Every lifeline type in the 18 diagrams becomes a class. A multiobject (`:Patient`, `:Appointment`, …) is not a class. Note that a message to a multiobject is a message to the collection that the sender holds, so it becomes a collection reference of the sender.
 2. **Methods.** Every message received by an object becomes a public operation of its class, with the parameters and return value drawn in the diagram. A message an object sends only to itself becomes a private (`-`) operation.
-   - A `create(...)` message becomes a `«create»` constructor (Lecture 19).
+   - A `create(...)` message becomes a `«create»` constructor.
    - A system operation arriving from the actor becomes a public operation of `Console`.
 3. **Attributes.** Attributes come from the domain model, with the same types and multiplicities. All are private, except Person's, which are protected (`#`) for its subclasses. Two design-level identifiers were added, `TimeSlot.slotId` and `ServiceType.serviceTypeId`, because the contracts look objects up by those ids.
 4. **Associations and navigability.**
-   - An association is drawn with an arrow where one object sends a message to, creates, or keeps a reference to another (Lecture 13).
-   - The role name at the arrow end is the name of the reference attribute in code (Lecture 19).
+   - An association is drawn with an arrow where one object sends a message to, creates, or keeps a reference to another.
+   - The role name at the arrow end is the name of the reference attribute in code.
    - Multiplicities are copied from the domain model.
    - Where an object reaches another only through a parameter or local variable, a dashed dependency is drawn instead.
 
@@ -63,7 +63,7 @@ A script (`DESIGN-VALIDATION.md`, sections 2 and 3) re-reads every message of th
 
 | Pattern | Where it appears in the diagram |
 |---|---|
-| **Controller** | `Console` receives all system operations and delegates. It holds the workflow objects `currentAppointment`, `currentConsultation` and `currentReferral`, as in Tutorial 3. |
+| **Controller** | `Console` receives all system operations and delegates. It holds the workflow objects `currentAppointment`, `currentConsultation` and `currentReferral`. |
 | **Creator** | Each creator owns the created objects through a composition or association:<br>• `Appointments` creates `Appointment` (CO2, CO12).<br>• `Referrals` creates `Referral` (CO14).<br>• `ActivityLog` creates `ActivityLogEntry`.<br>• `ClinicalRecord` creates `Consultation`, because it *Contains* them.<br>• `Consultation` creates `Diagnosis` (*Records*) and `Prescription` (*Issues*).<br>• `Prescription` creates `PrescriptionLineItem` (*Contains*). |
 | **Information Expert** | Each class answers from the information it holds:<br>• `TimeSlot.isBookable`: availability, occupant, offer and date.<br>• `Resource.hasCapacity`: quantity and allocations.<br>• `Appointment.selectSlot`: knows its own selection.<br>• `Patient.findValidReferral`: its referrals.<br>• `HealthcareProfessional.getBookableSlots` and `practisesAtClinic`.<br>• `MedicalSpecialty.getClinicProfessionals`.<br>• `Consultation.end` and `hasClinicalEntry`.<br>• `Referral.isComplete`.<br>• `Appointments.nextAppointmentNumber` and `Referrals.nextReferralNumber`: they know the numbers in use. |
 | **Low Coupling** | Console couples only to registries and to the four objects it keeps; everything else is reached through them.<br>Associations are navigable one way unless a message is sent both ways (7 two-way associations, each justified in DESIGN-VALIDATION.md).<br>Setters that only the object itself calls are private. |
@@ -76,7 +76,7 @@ The interaction diagrams follow Quiz 3, where `:VehicleDB`, `:StationDB` and `:S
 - creates and adds new objects when it is their Creator (`makeAppointment`, `makeFollowUp`, `makeReferral`, `record`);
 - hands out unique numbers (`nextAppointmentNumber`, `nextReferralNumber`).
 
-Registries are design classes, not domain concepts, so they are not in the domain model. In code each registry keeps a `List` of its objects (Lecture 19, "a container class is necessary to maintain attribute visibility").
+Registries are design classes, not domain concepts, so they are not in the domain model. In code each registry keeps a `List` of its objects ("a container class is necessary to maintain attribute visibility").
 
 The diagram distinguishes three kinds of operation:
 - **Registry operations:** `find`, `search`, `make…` and `next…Number`.
@@ -87,8 +87,8 @@ The diagram distinguishes three kinds of operation:
 
 ## Important object-visibility decisions
 
-- **Console** has attribute visibility to all nine registries, which are created at start-up and passed in, as in the Tutorial 5 RailCompany example. It also holds `currentUser` and the three workflow objects. No global or singleton access is used.
-- **Parameter visibility becomes attribute visibility in constructors**, as in Lecture 16 (Ticket). Examples:
+- **Console** has attribute visibility to all nine registries, which are created at start-up and passed in. It also holds `currentUser` and the three workflow objects. No global or singleton access is used.
+- **Parameter visibility becomes attribute visibility in constructors**. Examples:
   - `Appointment(p, u)` stores *Booked-for* and *Booked-by*.
   - `Referral(p, hp)` stores *Concerns* and *Issued-by*.
   - `Consultation(a)` stores *Conducted-during*.
