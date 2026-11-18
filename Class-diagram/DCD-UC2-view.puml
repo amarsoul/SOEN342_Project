@@ -1,0 +1,214 @@
+@startuml DCD-UC2-view
+hide circle
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam classFontStyle bold
+skinparam ArrowFontSize 11
+skinparam nodesep 60
+skinparam ranksep 70
+title Partial Design Class Diagram - UC2 Record Consultation view (subset of the integrated diagram)
+
+class Console {
+  - patients : Patients
+  - appointments : Appointments
+  - serviceTypes : ServiceTypes
+  - timeSlots : TimeSlots
+  - professionals : HealthcareProfessionals
+  - specialties : MedicalSpecialties
+  - medications : Medications
+  - referrals : Referrals
+  - activityLog : ActivityLog
+  - currentUser : UserAccount [0..1]
+  - currentAppointment : Appointment [0..1]
+  - currentConsultation : Consultation [0..1]
+  - currentReferral : Referral [0..1]
+  --
+  + startConsultation(appointmentId : String) : String
+  + recordObservations(observations : String)
+  + addDiagnosis(code : String, description : String)
+  + recordRecommendations(treatment : String, followUp : String)
+  + addPrescriptionItem(medicationId : String, dosage : String, frequency : String, duration : String, quantity : Integer)
+  + requestFollowUp(serviceTypeId : String, preferredTimeFrame : String) : String
+  + endConsultation() : String
+}
+class Medications {
+  --
+  + find(din : String) : Medication
+}
+class ActivityLog {
+  --
+  + record(u : UserAccount, action : String, recordType : String)
+  + record(u : UserAccount, action : String, recordType : String, p : Patient)
+}
+class Appointments {
+  --
+  + find(appointmentId : String) : Appointment
+  + makeFollowUp(p : Patient, st : ServiceType, timeFrame : String, u : UserAccount) : Appointment
+}
+class ServiceTypes {
+  --
+  + find(serviceTypeId : String) : ServiceType
+}
+class Medication {
+  - din : String
+  - name : String
+  - strength : String
+  - form : String
+  --
+}
+class ActivityLogEntry {
+  - timestamp : DateTime
+  - action : String
+  - recordType : String
+  --
+  + <<create>> ActivityLogEntry(timestamp : DateTime, action : String, recordType : String, u : UserAccount)
+  + <<create>> ActivityLogEntry(timestamp : DateTime, action : String, recordType : String, u : UserAccount, p : Patient)
+}
+class Patient {
+  - patientId : PatientID
+  - dateOfBirth : Date
+  - address : Address
+  --
+  + getClinicalRecord() : ClinicalRecord
+}
+class Appointment {
+  - appointmentNumber : String [0..1]
+  - date : Date [0..1]
+  - startTime : Time [0..1]
+  - status : AppointmentStatus
+  - arrivalTime : Time [0..1]
+  - preferredTimeFrame : String
+  --
+  + <<create>> Appointment(p : Patient, u : UserAccount)
+  + setStatus(s : AppointmentStatus)
+  + setServiceType(st : ServiceType)
+  + setPreferredTimeFrame(fromDate : Date, toDate : Date)
+  + setPreferredTimeFrame(timeFrame : String)
+  + getPatient() : Patient
+  + isScheduledWith(hp : HealthcareProfessional) : Boolean
+  + isArrived() : Boolean
+}
+class TimeSlot {
+  - slotId : String
+  - date : Date
+  - startTime : Time
+  - endTime : Time
+  - isAvailable : Boolean
+  --
+}
+class ServiceType {
+  - serviceTypeId : String
+  - name : String
+  - durationMinutes : Integer
+  - requiresReferral : Boolean
+  --
+  + getProviders() : HealthcareProfessional [*]
+}
+class HealthcareProfessional {
+  - licenceNumber : String
+  - profession : String
+  --
+  + hasAvailableSlot(timeFrame : String) : Boolean
+}
+class UserAccount {
+  - username : String
+  - role : Role
+  --
+  + hasClinicalAccess() : Boolean
+  + getProfessional() : HealthcareProfessional [0..1]
+}
+abstract class Person {
+  # firstName : String
+  # lastName : String
+  # phone : PhoneNumber
+  --
+}
+class ClinicalRecord {
+  - recordNumber : String
+  - dateOpened : Date
+  --
+  + startConsultation(a : Appointment) : Consultation
+  + getHistory() : Consultation [*]
+}
+class Consultation {
+  - date : Date
+  - startTime : Time
+  - endTime : Time
+  - observations : String
+  - treatmentRecommendations : String
+  - followUpRequirements : String
+  --
+  + <<create>> Consultation(a : Appointment)
+  + setObservations(observations : String)
+  + setTreatmentRecommendations(treatment : String)
+  + setFollowUpRequirements(followUp : String)
+  + addDiagnosis(code : String, description : String)
+  + addPrescriptionItem(m : Medication, dosage : String, frequency : String, duration : String, quantity : Integer)
+  + addFollowUp(fa : Appointment)
+  + getPatient() : Patient
+  + end() : Boolean
+  - setDate(d : Date)
+  - setStartTime(t : Time)
+  - setEndTime(t : Time)
+  - hasClinicalEntry() : Boolean
+  - getPrescription() : Prescription [0..1]
+  - setPrescription(pr : Prescription)
+}
+class Diagnosis {
+  - code : String
+  - description : String
+  --
+  + <<create>> Diagnosis(code : String, description : String)
+}
+class Prescription {
+  - dateIssued : Date
+  --
+  + <<create>> Prescription(dateIssued : Date)
+  + addLineItem(m : Medication, dosage : String, frequency : String, duration : String, quantity : Integer)
+}
+class PrescriptionLineItem {
+  - dosage : String
+  - frequency : String
+  - duration : String
+  - quantity : Integer
+  --
+  + <<create>> PrescriptionLineItem(m : Medication, dosage : String, frequency : String, duration : String, quantity : Integer)
+}
+Console "1" --> "1\nmedications" Medications
+Console "1" --> "1\nactivityLog" ActivityLog
+Console "1" --> "1\nappointments" Appointments
+Console "1" --> "1\nserviceTypes" ServiceTypes
+Medications "1" o--> "*\nmedications" Medication
+ActivityLog "1" *--> "*\nentries" ActivityLogEntry
+Appointments "1" *--> "*\nappointments" Appointment
+ServiceTypes "1" o--> "*\nserviceTypes" ServiceType
+ActivityLogEntry "*" --> "1\nperformedBy" UserAccount : Performed-by
+UserAccount "0..1" --> "1\nperson" Person : Identifies
+Patient "1" --> "1\nclinicalRecord" ClinicalRecord : Has
+ClinicalRecord "1" *--> "*\nconsultations" Consultation : Contains
+Consultation "1" *--> "*\ndiagnoses" Diagnosis : Records
+Consultation "1" --> "0..1\nprescription" Prescription : Issues
+Prescription "1" *--> "1..*\nlineItems" PrescriptionLineItem : Contains
+PrescriptionLineItem "*" --> "1\nmedication" Medication : Prescribes
+Appointment "*" --> "1\nserviceType" ServiceType : Is-for
+Appointment "*" --> "0..1\nprofessional" HealthcareProfessional : Scheduled-with
+Console -[norank]-> "0..1\ncurrentUser" UserAccount
+Console -[norank]-> "0..1\ncurrentConsultation" Consultation
+Person <|-[norank]- Patient
+Person <|-[norank]- HealthcareProfessional
+ActivityLogEntry "*" -[norank]-> "0..1\npatient" Patient : Concerns
+HealthcareProfessional "1\nprofessional" <-[norank]-> "*\nslots" TimeSlot : Available-during
+HealthcareProfessional "*\nproviders" <-[norank]-> "*\nservices" ServiceType : Provides
+Appointment "*" -[norank]-> "1\npatient" Patient : Booked-for
+Appointment "*" -[norank]-> "1\nbookedBy" UserAccount : Booked-by
+Consultation "0..1" -[norank]-> "1\nappointment" Appointment : Conducted-during
+Consultation "0..1" -[norank]-> "*\nfollowUps" Appointment : Requests-follow-up
+Console .[norank].> Patient
+Console .[norank].> HealthcareProfessional
+Console .[norank].> ServiceType
+Console .[norank].> ClinicalRecord
+Console .[norank].> Appointment
+@enduml
