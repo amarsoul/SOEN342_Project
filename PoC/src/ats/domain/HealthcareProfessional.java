@@ -18,7 +18,6 @@ private final String profession;
 
 private final Set<MedicalSpecialty> specialties = new LinkedHashSet<>(); 
 private final Set<ClinicLocation> locations = new LinkedHashSet<>();     
-private final Set<ServiceType> services = new LinkedHashSet<>();         
 
 private final List<TimeSlot> timeSlots = new ArrayList<>();              
 private final List<Availability> availabilities = new ArrayList<>();     
@@ -85,11 +84,6 @@ locations.add(cl);
 }
 
 
-public void addService(ServiceType st) { 
-services.add(st); 
-}
-
-
 public void addTimeSlot(TimeSlot ts) { 
 timeSlots.add(ts); 
 }
@@ -107,7 +101,7 @@ return specialties.contains(ms);
 
 
 public boolean provides(ServiceType st) { 
-return services.contains(st); 
+return st.getProviders().contains(this); 
 }
 
 
@@ -135,13 +129,13 @@ availabilities.add(av);
 
 // expert pattern: profsional knows the timeslots they are available 
 
-public List<TimeSlot> getBookableSlots(ServiceType st, Appointment booking, LocalDate from, LocalDate to, LocalDate today) {
+public List<TimeSlot> getBookableSlots(LocalDate from, LocalDate to, ServiceType st, Appointment booking) {
     
 List<TimeSlot> result = new ArrayList<>();
 
 for (TimeSlot ts : timeSlots) {
     
-if (!ts.getDate().isBefore(from) && !ts.getDate().isAfter(to) && ts.isBookable(st, booking, today)) {
+if (!ts.getDate().isBefore(from) && !ts.getDate().isAfter(to) && ts.isBookable(st, booking)) {
 result.add(ts);
 }
 

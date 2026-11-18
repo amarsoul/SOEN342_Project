@@ -39,14 +39,19 @@ public class Patient extends Person{
         referrals.add(referral);
     }
 
-    // patient valid's referral for a service and a professional
-    public Referral findValidReferral(ServiceType st, HealthcareProfessional hp) {
+    // patient valid's referral for a specialty or a professional
+    public Referral findValidReferral(MedicalSpecialty ms, HealthcareProfessional hp) {
         for (Referral referral : referrals) {
-            if (referral.isValidFor(this, st, hp)) {
+            if (referral.isValidFor(ms, hp)) {
                 return referral;
             }
         }
         return null;
+    }
+
+    // summary of the patient shown when a booking starts
+    public String getSummary() {
+        return toString();
     }
 
     // it maches by insurance number, date of birth, phone number, first name and laste name

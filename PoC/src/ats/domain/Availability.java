@@ -62,14 +62,17 @@ return specified;
 }
 // it specifies contract validates inputs before setting the attributes
 public void specify(ClinicLocation cl, LocalDate from, LocalDate to, Repetition rep, Set<DayOfWeek> days,
-Integer dom, LocalTime start, LocalTime end, int duration, LocalDate today) {
+Integer dom, LocalTime start, LocalTime end, int duration) {
     
+LocalDate today = SystemDate.today();
 if (!professional.practisesAt(cl)){
 throw new DomainException("invalid availability period: " + professional.getFullName()
 + " does not practise at " + cl.getName());
 }
 if (from == null || to == null || from.isAfter(to) || to.isBefore(today)){
+
 throw new DomainException("invalid availability period: invalid date range (4a)");
+
 }
 if (rep == Repetition.WEEKLY && (days == null || days.isEmpty())){
 throw new DomainException("invalid availability period: weekly needs at least one day of the week (5a)");
@@ -132,12 +135,12 @@ return periods;
 }
 
 
-// slot of the professional (Creator: an Availability Generates its TimeSlots). Returns the number created.
-public int confirm(){
+// slot of the professional (Creator: an Availability Generates its TimeSlots). Returns the slots created.
+public List<TimeSlot> confirm(){
 if (!specified){
 throw new DomainException("specify the availability first");
 }
-int created = 0;
+List<TimeSlot> created = new ArrayList<>();
 for (SlotPeriod period : computeSlotPeriods()) {
 if (professional.overlapsExistingSlot(period)) {
 continue; // overlapping periods are skipped
@@ -145,7 +148,7 @@ continue; // overlapping periods are skipped
 TimeSlot ts = new TimeSlot(TimeSlot.nextId(), period.date(), period.start(), period.end(),
 professional, location, this);
 professional.addTimeSlot(ts);
-created++;
+created.add(ts);
 }
 professional.addAvailability(this);
 return created;

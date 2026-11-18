@@ -1,5 +1,7 @@
 package ats.domain;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 //referral class for the domain model, it concerns a Patient and request a medical specialty or professional to see the patient, it has a status and a date of creation
 public class Referral {
 
@@ -10,6 +12,7 @@ public class Referral {
     private final Patient patient;                       
     private final MedicalSpecialty requestedSpecialty; 
     private final HealthcareProfessional requestedProfessional;
+    private final List<Appointment> appointments = new ArrayList<>();
 public Referral(String referralNumber, LocalDate dateIssued, String clinicalReason, Patient patient, MedicalSpecialty requestedSpecialty, HealthcareProfessional requestedProfessional) {
         this.referralNumber = referralNumber;
         this.dateIssued = dateIssued;
@@ -50,16 +53,26 @@ public Referral(String referralNumber, LocalDate dateIssued, String clinicalReas
     public HealthcareProfessional getRequestedProfessional() {
         return requestedProfessional;
     }
+
+    public void addAppointment(Appointment a) {
+        if (!appointments.contains(a)) {
+            appointments.add(a);
+        }
+    }
+
+    public void removeAppointment(Appointment a) {
+        appointments.remove(a);
+    }
    // valid for a service and a professional
-    public boolean isValidFor(Patient p, ServiceType st, HealthcareProfessional hp) {
+    public boolean isValidFor(MedicalSpecialty ms, HealthcareProfessional hp) {
 
        boolean active = status == ReferralStatus.OPEN || status == ReferralStatus.SCHEDULED;
 
-        boolean sameSpecialty = requestedSpecialty != null && requestedSpecialty == st.getSpecialty();
+        boolean sameSpecialty = requestedSpecialty != null && requestedSpecialty == ms;
 
         boolean sameProfessional = requestedProfessional != null && requestedProfessional == hp;
 
-        return patient == p && active && (sameSpecialty || sameProfessional);
+        return active && (sameSpecialty || sameProfessional);
     }
 
     // the referral becomes scheduled when an appointment is created for the patient 

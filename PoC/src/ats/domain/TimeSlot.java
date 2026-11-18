@@ -26,6 +26,8 @@ private boolean isAvailable = true;
 private final HealthcareProfessional professional; 
 private final ClinicLocation location;            
 private final Availability availability;           
+private Appointment occupant;
+private WaitingListEntry offer;
 
 
 
@@ -82,6 +84,36 @@ return availability;
 }
 
 
+public Appointment getOccupant() { 
+return occupant; 
+}
+
+
+public WaitingListEntry getOffer() { 
+return offer; 
+}
+
+
+public void setAvailable(boolean available) { 
+isAvailable = available; 
+}
+
+
+public void setOccupant(Appointment a) { 
+occupant = a; 
+}
+
+
+public void setOffer(WaitingListEntry w) { 
+offer = w; 
+}
+
+
+public void clearOffer() { 
+offer = null; 
+}
+
+
 
 public long getDurationMinutes() { 
 return Duration.between(startTime, endTime).toMinutes(); 
@@ -111,13 +143,13 @@ return date.equals(d) && startTime.isBefore(end) && start.isBefore(endTime);
 
 // check if slot is bookable 
 
-public boolean isBookable(ServiceType st, Appointment booking, LocalDate today) {
+public boolean isBookable(ServiceType st, Appointment booking) {
     
 boolean heldByThisBooking = booking != null && booking.getTimeSlot() == this;
 
 
 // it must not be in the past
-if (date.isBefore(today)) {
+if (date.isBefore(SystemDate.today())) {
 return false;
 }
 
@@ -130,6 +162,20 @@ return false;
 // slot must be long enough for the service
 if (st != null && getDurationMinutes() < st.getDurationMinutes()) {
 return false;
+}
+
+// it must not be offered to another patient
+if (offer != null && (booking == null || !offer.concerns(booking.getPatient()))) {
+return false;
+}
+
+// every resource needed must have enough capacity
+if (st != null) {
+for (ResourceRequirement rr : st.getRequirements()) {
+if (!rr.getResource().hasCapacity(this, rr.getQuantityNeeded(), booking)) {
+return false;
+}
+}
 }
 
 return true;
