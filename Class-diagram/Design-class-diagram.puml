@@ -1,0 +1,387 @@
+@startuml Design-class-diagram
+hide circle
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam classFontStyle bold
+skinparam ArrowFontSize 11
+skinparam nodesep 60
+skinparam ranksep 70
+title Appointment Tracking System - Partial Design Class Diagram (UC1, UC2, UC3) - Iteration II
+
+class Console {
+  - patients : Patients
+  - appointments : Appointments
+  - serviceTypes : ServiceTypes
+  - timeSlots : TimeSlots
+  - professionals : HealthcareProfessionals
+  - specialties : MedicalSpecialties
+  - medications : Medications
+  - referrals : Referrals
+  - activityLog : ActivityLog
+  - currentUser : UserAccount [0..1]
+  - currentAppointment : Appointment [0..1]
+  - currentConsultation : Consultation [0..1]
+  - currentReferral : Referral [0..1]
+  --
+  + searchPatients(criteria : SearchCriteria) : Patient [*]
+  + startNewBooking(patientId : PatientID) : String
+  + specifyService(serviceTypeId : String, fromDate : Date, toDate : Date) : TimeSlot [*]
+  + selectTimeSlot(slotId : String) : String
+  + confirmAppointment() : String
+  + startConsultation(appointmentId : String) : String
+  + recordObservations(observations : String)
+  + addDiagnosis(code : String, description : String)
+  + recordRecommendations(treatment : String, followUp : String)
+  + addPrescriptionItem(medicationId : String, dosage : String, frequency : String, duration : String, quantity : Integer)
+  + requestFollowUp(serviceTypeId : String, preferredTimeFrame : String) : String
+  + endConsultation() : String
+  + startReferral(patientId : PatientID) : String
+  + setRequestedSpecialty(specialtyId : String) : HealthcareProfessional [*]
+  + setRequestedProfessional(professionalId : String) : Boolean
+  + enterReferralDetails(clinicalReason : String, priority : Priority)
+  + submitReferral() : String
+}
+class Medications {
+  --
+  + find(din : String) : Medication
+}
+class ActivityLog {
+  --
+  + record(u : UserAccount, action : String, recordType : String)
+  + record(u : UserAccount, action : String, recordType : String, p : Patient)
+}
+class Patients {
+  --
+  + search(criteria : SearchCriteria) : Patient [*]
+  + find(patientId : PatientID) : Patient
+}
+class Appointments {
+  --
+  + find(appointmentId : String) : Appointment
+  + makeAppointment(p : Patient, u : UserAccount) : Appointment
+  + makeFollowUp(p : Patient, st : ServiceType, timeFrame : String, u : UserAccount) : Appointment
+  + nextAppointmentNumber() : String
+}
+class Referrals {
+  --
+  + makeReferral(p : Patient, hp : HealthcareProfessional) : Referral
+  + nextReferralNumber() : String
+}
+class TimeSlots {
+  --
+  + find(slotId : String) : TimeSlot
+}
+class ServiceTypes {
+  --
+  + find(serviceTypeId : String) : ServiceType
+}
+class HealthcareProfessionals {
+  --
+  + find(licenceNumber : String) : HealthcareProfessional
+}
+class MedicalSpecialties {
+  --
+  + find(code : String) : MedicalSpecialty
+}
+class Medication {
+  - din : String
+  - name : String
+  - strength : String
+  - form : String
+  --
+}
+class ActivityLogEntry {
+  - timestamp : DateTime
+  - action : String
+  - recordType : String
+  --
+  + <<create>> ActivityLogEntry(timestamp : DateTime, action : String, recordType : String, u : UserAccount)
+  + <<create>> ActivityLogEntry(timestamp : DateTime, action : String, recordType : String, u : UserAccount, p : Patient)
+}
+class Patient {
+  - patientId : PatientID
+  - dateOfBirth : Date
+  - address : Address
+  --
+  + getSummary() : String
+  + getClinicalRecord() : ClinicalRecord
+  + findValidReferral(ms : MedicalSpecialty, hp : HealthcareProfessional) : Referral [0..1]
+  + addReferral(r : Referral)
+}
+class Appointment {
+  - appointmentNumber : String [0..1]
+  - date : Date [0..1]
+  - startTime : Time [0..1]
+  - status : AppointmentStatus
+  - arrivalTime : Time [0..1]
+  - preferredTimeFrame : String
+  --
+  + <<create>> Appointment(p : Patient, u : UserAccount)
+  + setStatus(s : AppointmentStatus)
+  + setServiceType(st : ServiceType)
+  + setPreferredTimeFrame(fromDate : Date, toDate : Date)
+  + setPreferredTimeFrame(timeFrame : String)
+  + selectSlot(ts : TimeSlot) : Boolean
+  + confirm(n : String)
+  + getPatient() : Patient
+  + isScheduledWith(hp : HealthcareProfessional) : Boolean
+  + isArrived() : Boolean
+  - clearSelection()
+  - setTimeSlot(ts : TimeSlot)
+  - setProfessional(hp : HealthcareProfessional)
+  - setDate(d : Date)
+  - setStartTime(t : Time)
+  - setReferral(r : Referral)
+  - addResource(R : Resource)
+  - setAppointmentNumber(n : String)
+}
+class Referral {
+  - referralNumber : String
+  - dateIssued : Date
+  - clinicalReason : String
+  - priority : Priority
+  - status : ReferralStatus
+  --
+  + <<create>> Referral(p : Patient, hp : HealthcareProfessional)
+  + setStatus(s : ReferralStatus)
+  + setRequestedSpecialty(ms : MedicalSpecialty)
+  + setRequestedProfessional(hp : HealthcareProfessional)
+  + setClinicalReason(reason : String)
+  + setPriority(priority : Priority)
+  + isComplete() : Boolean
+  + submit(n : String)
+  + getPatient() : Patient
+  + addAppointment(a : Appointment)
+  + removeAppointment(a : Appointment)
+  - setDateIssued(d : Date)
+  - setReferralNumber(n : String)
+}
+class TimeSlot {
+  - slotId : String
+  - date : Date
+  - startTime : Time
+  - endTime : Time
+  - isAvailable : Boolean
+  --
+  + isBookable(st : ServiceType, a : Appointment) : Boolean
+  + getProfessional() : HealthcareProfessional
+  + getDate() : Date
+  + getStartTime() : Time
+  + setAvailable(b : Boolean)
+  + setOccupant(a : Appointment [0..1])
+  + getOffer() : WaitingListEntry [0..1]
+  + clearOffer()
+}
+class ServiceType {
+  - serviceTypeId : String
+  - name : String
+  - durationMinutes : Integer
+  - requiresReferral : Boolean
+  --
+  + getProviders() : HealthcareProfessional [*]
+  + getRequirements() : ResourceRequirement [*]
+  + getSpecialty() : MedicalSpecialty [0..1]
+  + getDurationMinutes() : Integer
+  + requiresReferral() : Boolean
+}
+class HealthcareProfessional {
+  - licenceNumber : String
+  - profession : String
+  --
+  + getBookableSlots(fromDate : Date, toDate : Date, st : ServiceType, a : Appointment) : TimeSlot [*]
+  + hasAvailableSlot(timeFrame : String) : Boolean
+  + provides(st : ServiceType) : Boolean
+  + practisesAtClinic() : Boolean
+}
+class MedicalSpecialty {
+  - code : String
+  - name : String
+  --
+  + getClinicProfessionals() : HealthcareProfessional [*]
+}
+class UserAccount {
+  - username : String
+  - role : Role
+  --
+  + hasClinicalAccess() : Boolean
+  + canIssueReferrals() : Boolean
+  + getProfessional() : HealthcareProfessional [0..1]
+}
+abstract class Person {
+  # firstName : String
+  # lastName : String
+  # phone : PhoneNumber
+  --
+}
+class ClinicalRecord {
+  - recordNumber : String
+  - dateOpened : Date
+  --
+  + startConsultation(a : Appointment) : Consultation
+  + getHistory() : Consultation [*]
+}
+class Consultation {
+  - date : Date
+  - startTime : Time
+  - endTime : Time
+  - observations : String
+  - treatmentRecommendations : String
+  - followUpRequirements : String
+  --
+  + <<create>> Consultation(a : Appointment)
+  + setObservations(observations : String)
+  + setTreatmentRecommendations(treatment : String)
+  + setFollowUpRequirements(followUp : String)
+  + addDiagnosis(code : String, description : String)
+  + addPrescriptionItem(m : Medication, dosage : String, frequency : String, duration : String, quantity : Integer)
+  + addFollowUp(fa : Appointment)
+  + getPatient() : Patient
+  + end() : Boolean
+  - setDate(d : Date)
+  - setStartTime(t : Time)
+  - setEndTime(t : Time)
+  - hasClinicalEntry() : Boolean
+  - getPrescription() : Prescription [0..1]
+  - setPrescription(pr : Prescription)
+}
+class Diagnosis {
+  - code : String
+  - description : String
+  --
+  + <<create>> Diagnosis(code : String, description : String)
+}
+class Prescription {
+  - dateIssued : Date
+  --
+  + <<create>> Prescription(dateIssued : Date)
+  + addLineItem(m : Medication, dosage : String, frequency : String, duration : String, quantity : Integer)
+}
+class PrescriptionLineItem {
+  - dosage : String
+  - frequency : String
+  - duration : String
+  - quantity : Integer
+  --
+  + <<create>> PrescriptionLineItem(m : Medication, dosage : String, frequency : String, duration : String, quantity : Integer)
+}
+class WaitingListEntry {
+  - dateRequested : DateTime
+  - reason : String
+  - priority : Priority
+  - status : WaitlistStatus
+  --
+  + concerns(p : Patient) : Boolean
+  + accept(a : Appointment)
+  - setOfferedSlot(ts : TimeSlot [0..1])
+  - setAppointment(a : Appointment)
+  - setStatus(s : WaitlistStatus)
+}
+class ResourceRequirement {
+  - quantityNeeded : Integer
+  --
+  + getResource() : Resource
+  + getQuantityNeeded() : Integer
+}
+class Resource {
+  - name : String
+  - type : ResourceType
+  - quantity : Integer
+  --
+  + hasCapacity(ts : TimeSlot, q : Integer, a : Appointment) : Boolean
+  + allocate(a : Appointment)
+  + deallocate(a : Appointment)
+  - quantityInUse(ts : TimeSlot, a : Appointment) : Integer
+}
+class ClinicLocation {
+  - name : String
+  - address : Address
+  --
+}
+Console "1" --> "1\nmedications" Medications
+Console "1" --> "1\nactivityLog" ActivityLog
+Console "1" --> "1\npatients" Patients
+Console "1" --> "1\nappointments" Appointments
+Console "1" --> "1\nreferrals" Referrals
+Console "1" --> "1\ntimeSlots" TimeSlots
+Console "1" --> "1\nserviceTypes" ServiceTypes
+Console "1" --> "1\nprofessionals" HealthcareProfessionals
+Console "1" --> "1\nspecialties" MedicalSpecialties
+Medications "1" o--> "*\nmedications" Medication
+ActivityLog "1" *--> "*\nentries" ActivityLogEntry
+Patients "1" o--> "*\npatients" Patient
+Appointments "1" *--> "*\nappointments" Appointment
+Referrals "1" *--> "*\nreferrals" Referral
+TimeSlots "1" o--> "*\nslots" TimeSlot
+ServiceTypes "1" o--> "*\nserviceTypes" ServiceType
+HealthcareProfessionals "1" o--> "*\nprofessionals" HealthcareProfessional
+MedicalSpecialties "1" o--> "*\nspecialties" MedicalSpecialty
+ActivityLogEntry "*" --> "1\nperformedBy" UserAccount : Performed-by
+UserAccount "0..1" --> "1\nperson" Person : Identifies
+Patient "1" --> "1\nclinicalRecord" ClinicalRecord : Has
+ClinicalRecord "1" *--> "*\nconsultations" Consultation : Contains
+Consultation "1" *--> "*\ndiagnoses" Diagnosis : Records
+Consultation "1" --> "0..1\nprescription" Prescription : Issues
+Prescription "1" *--> "1..*\nlineItems" PrescriptionLineItem : Contains
+PrescriptionLineItem "*" --> "1\nmedication" Medication : Prescribes
+Appointment "0..1\noccupant" <--> "0..1\ntimeSlot" TimeSlot : Occupies
+Appointment "*" --> "1\nserviceType" ServiceType : Is-for
+Appointment "*" --> "0..1\nprofessional" HealthcareProfessional : Scheduled-with
+TimeSlot "0..1\nofferedSlot" <--> "0..1\noffer" WaitingListEntry : Is-offered
+ServiceType "1" *--> "*\nrequirements" ResourceRequirement : Requires
+ResourceRequirement "*" --> "1\nresource" Resource
+HealthcareProfessional "*" --> "0..*\nlocations" ClinicLocation : Practises-at
+Referral "*" --> "0..1\nrequestedSpecialty" MedicalSpecialty : Requests-specialty
+Console -[norank]-> "0..1\ncurrentUser" UserAccount
+Console -[norank]-> "0..1\ncurrentAppointment" Appointment
+Console -[norank]-> "0..1\ncurrentConsultation" Consultation
+Console -[norank]-> "0..1\ncurrentReferral" Referral
+Person <|-[norank]- Patient
+Person <|-[norank]- HealthcareProfessional
+ActivityLogEntry "*" -[norank]-> "0..1\npatient" Patient : Concerns
+MedicalSpecialty "0..*" -[norank]-> "*\nprofessionals" HealthcareProfessional : Specializes-in
+HealthcareProfessional "1\nprofessional" <-[norank]-> "*\nslots" TimeSlot : Available-during
+HealthcareProfessional "*\nproviders" <-[norank]-> "*\nservices" ServiceType : Provides
+Appointment "*" -[norank]-> "1\npatient" Patient : Booked-for
+Appointment "*" -[norank]-> "1\nbookedBy" UserAccount : Booked-by
+Appointment "*\nallocatedTo" <-[norank]-> "*\nresources" Resource : Is-allocated
+ServiceType "*" -[norank]-> "0..1\nspecialty" MedicalSpecialty : Belongs-to
+WaitingListEntry "*" -[norank]-> "1\npatient" Patient : Concerns
+WaitingListEntry "0..1" -[norank]-> "0..1\nappointment" Appointment : Results-in
+Referral "*\nreferrals" <-[norank]-> "1\npatient" Patient : Concerns
+Referral "*" -[norank]-> "1\nissuedBy" HealthcareProfessional : Issued-by
+Referral "*" -[norank]-> "0..1\nrequestedProfessional" HealthcareProfessional : Requests-professional
+Referral "0..1\nreferral" <-[norank]-> "*\nappointments" Appointment : Results-in
+Consultation "0..1" -[norank]-> "1\nappointment" Appointment : Conducted-during
+Consultation "0..1" -[norank]-> "*\nfollowUps" Appointment : Requests-follow-up
+Console .[norank].> Patient
+Console .[norank].> HealthcareProfessional
+Console .[norank].> ServiceType
+Console .[norank].> MedicalSpecialty
+Console .[norank].> ClinicalRecord
+Referrals .[norank].> Patient
+TimeSlot .[norank].> ServiceType
+TimeSlot .[norank].> ResourceRequirement
+TimeSlot .[norank].> Resource
+Appointment .[norank].> ResourceRequirement
+Appointment .[norank].> WaitingListEntry
+Console .[norank].> Appointment
+note as N1
+  <b>Partial design class diagram, UC1-UC3</b>
+  Derived from the 18 interaction diagrams (CO1-CO5, CO4a, CO7-CO18).
+  Navigable association end with role name = attribute visibility
+  (Lecture 13); Console also lists its references as attributes.
+  Dashed arrow = parameter/local visibility (dependency).
+  <<create>> = constructor for a create(...) message.
+  Messages to a multiobject (find, add, getAll) go to the
+  collection held through the association with that role name.
+  Types and enumerations are those of the domain model:
+  PatientID, Address, PhoneNumber, Date, Time, DateTime,
+  SearchCriteria, Role, Priority, AppointmentStatus,
+  ReferralStatus, WaitlistStatus, ResourceType.
+  slotId and serviceTypeId are design-level identifiers.
+end note
+
+@enduml
